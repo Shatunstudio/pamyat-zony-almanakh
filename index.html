@@ -327,7 +327,7 @@ textarea.in{min-height:70px;resize:vertical}
 @media (prefers-reduced-motion:reduce){.detwrap::after,.detector.boot i{animation:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 /* sound toggle */
-.sndbtn{background:none;border:1px solid var(--line);border-radius:999px;padding:3px 10px 3px 8px;font-family:var(--f-m);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:inline-flex;gap:7px;align-items:center}
+.sndbtn{width:8.6em;justify-content:center;white-space:nowrap;background:none;border:1px solid var(--line);border-radius:999px;padding:3px 10px 3px 8px;font-family:var(--f-m);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:inline-flex;gap:7px;align-items:center}
 .sndbtn[aria-pressed="true"]{color:var(--rad);border-color:color-mix(in srgb,var(--rad) 55%,transparent)}
 .eq{display:inline-flex;gap:2px;align-items:flex-end;height:11px}
 .eq i{width:2px;background:currentColor;border-radius:1px;height:4px;animation:eqa 1s ease-in-out infinite}
@@ -468,7 +468,7 @@ textarea.in{min-height:70px;resize:vertical}
 <div class="wrap">
   <header class="pda" id="pda">
     <canvas class="dust" id="dust" aria-hidden="true"></canvas>
-    <div class="status"><span><i class="blink"></i>КПК · Збір карток · <b id="syncS">з'єднання…</b></span><span class="sr"><button class="acct" id="acctBtn">Увійти через Google</button><button class="sndbtn" id="sndBtn" aria-pressed="false"><span class="eq off"><i></i><i></i><i></i></span>Звук вимкнено</button><span>S.T.A.L.K.E.R. 2 × АТБ · 48 карток</span></span></div>
+    <div class="status"><span><i class="blink"></i>КПК · Збір карток · <b id="syncS">з'єднання…</b></span><span class="sr"><button class="acct" id="acctBtn">Увійти через Google</button><button class="sndbtn" id="sndBtn" aria-pressed="false"><span class="eq off"><i></i><i></i><i></i></span>Звук вимк.</button><span>S.T.A.L.K.E.R. 2 × АТБ · 48 карток</span></span></div>
     <h1>Пам'ять <span>Зони</span></h1>
     <div class="otherbar" id="otherBar" hidden><span>Ти дивишся колекцію: <b id="otherName"></b></span><button class="pb" id="otherBack">← Моя колекція</button></div>
     <div class="whose" id="whose" hidden><div class="pillbtns"><button class="pb" data-w="mine" aria-pressed="true">Моя колекція</button><button class="pb" data-w="author" aria-pressed="false">Колекція автора</button></div><span class="hint" id="whoseNote"></span></div>
@@ -957,7 +957,7 @@ function ambient(on){const c=SND.ctx;if(!c)return;
     const tick=()=>{if(!SND.amb)return;if(!document.hidden)sfx.geiger(220+Math.random()*500,4+Math.random()*10);SND.gt=setTimeout(tick,2500+Math.random()*5000)};SND.gt=setTimeout(tick,1500)}
   else if(!on&&SND.amb){const a=SND.amb;SND.amb=null;clearTimeout(SND.gt);a.g.gain.linearRampToValueAtTime(0,c.currentTime+.6);setTimeout(()=>{try{a.s.stop();a.lfo.stop()}catch(e){}},700)}}
 function setSnd(on){SND.on=on;try{localStorage.setItem("stalker-snd",on?"1":"0")}catch(e){}
-  const b=$("sndBtn");b.setAttribute("aria-pressed",on);b.innerHTML=on?'<span class="eq"><i></i><i></i><i></i></span>Звук':'<span class="eq off"><i></i><i></i><i></i></span>Звук вимкнено';
+  const b=$("sndBtn");b.setAttribute("aria-pressed",on);b.innerHTML=on?'<span class="eq"><i></i><i></i><i></i></span>Звук увімк.':'<span class="eq off"><i></i><i></i><i></i></span>Звук вимк.';
   if(on){ac();loadFlips();ambient(true);sfx.pda()}else ambient(false)}
 document.addEventListener("visibilitychange",()=>{if(!SND.ctx)return;if(document.hidden)SND.ctx.suspend();else if(SND.on)SND.ctx.resume()});
 
@@ -1121,7 +1121,7 @@ $("copyMiss").onclick=()=>{const m=IDS.filter(k=>it(k).s!=="have").map(Number);c
 $("copyDup").onclick=()=>{const d=IDS.filter(k=>it(k).d>0);if(!d.length){toast("Повторок поки немає");return}
   copy(`S.T.A.L.K.E.R. 2 × АТБ. Віддам на обмін: ${d.map(k=>`${k} ${CARDS[k-1].n}${it(k).d>1?` ×${it(k).d}`:""}`).join(", ")}. Шукаю: ${ranges(IDS.filter(k=>it(k).s!=="have").map(Number))}`,"Скопійовано список для обміну")};
 let tt;function toast(m){sfx.blip();const t=$("toast");t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2800)}
-{const want=SND.on;SND.on=false;if(want){const go=e=>{if(e.target.closest("#sndBtn"))return;removeEventListener("pointerdown",go,true);setSnd(true)};addEventListener("pointerdown",go,true);$("sndBtn").innerHTML='<span class="eq off"><i></i><i></i><i></i></span>Звук · торкнись сторінки'}}
+{const want=SND.on;SND.on=false;if(want){const go=e=>{if(e.target.closest("#sndBtn,#acctBtn"))return;removeEventListener("pointerdown",go,true);setSnd(true)};addEventListener("pointerdown",go,true);$("sndBtn").innerHTML='<span class="eq off"><i></i><i></i><i></i></span>Звук вимк.'}}
 /* ================= ACCOUNTS + EXCHANGE (Firebase) =================
    Works only when config.js sets window.FIREBASE_CONFIG. Without it the site keeps the browser-only mode. */
 const FB={on:false,auth:null,fs:null,user:null,doc:null,unsub:null,profile:{name:"",photo:"",tg:"",city:"",public:true},board:[],boardAt:0};
@@ -1131,7 +1131,7 @@ function initCloud(){if(!fbReady()){$("acctBtn").hidden=true;$("xBtn").hidden=tr
   try{firebase.initializeApp(window.FIREBASE_CONFIG)}catch(e){}
   FB.on=true;window.FB_ON=true;FB.auth=firebase.auth();FB.fs=firebase.firestore();
   $("whose").hidden=true;
-  FB.auth.getRedirectResult().catch(e=>{if(e&&e.code)toast("Вхід не вдався: "+e.code)});
+  try{FB.auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{})}catch(e){}
   FB.auth.onAuthStateChanged(async u=>{FB.user=u;renderAcct();
     if(FB.unsub){FB.unsub();FB.unsub=null}
     if(!u){if(mode==="cloud"){mode="local";ref=null;exists=false;S=loadLocal(LSK)||{items:{},budget:0};myS=S;viewing="mine";readOnly=false;setModeUI();render()}return}
@@ -1153,9 +1153,16 @@ function initCloud(){if(!fbReady()){$("acctBtn").hidden=true;$("xBtn").hidden=tr
       S=JSON.parse(JSON.stringify(OWNER_SNAPSHOT));myS=S;pending={items:S.items,budget:S.budget};queue();toast("Колекцію автора перенесено в твій акаунт")}
     viewing="mine";readOnly=false;setModeUI();render()});
 }
-function signIn(){if(!FB.on)return;const p=new firebase.auth.GoogleAuthProvider();
-  FB.auth.signInWithPopup(p).catch(e=>{if(e&&(e.code==="auth/popup-blocked"||e.code==="auth/operation-not-supported-in-this-environment"||e.code==="auth/cancelled-popup-request"))FB.auth.signInWithRedirect(p);
-    else if(e&&e.code!=="auth/popup-closed-by-user")toast("Вхід не вдався: "+(e.code||e.message))})}
+const AUTH_MSG={"auth/popup-blocked":"Браузер заблокував вікно входу. Дозволь спливні вікна для цього сайту (значок праворуч в адресному рядку) і натисни ще раз.",
+  "auth/unauthorized-domain":"Цей сайт не додано у Firebase → Authentication → Settings → Authorized domains.",
+  "auth/operation-not-allowed":"У Firebase не ввімкнено вхід через Google (Authentication → Sign-in method).",
+  "auth/network-request-failed":"Немає з'єднання з Google. Перевір інтернет і спробуй ще раз.",
+  "auth/web-storage-unsupported":"Браузер блокує збереження даних. Вимкни режим інкогніто або блокування cookies для сайту."};
+let signing=false;
+function signIn(){if(!FB.on||signing)return;signing=true;const p=new firebase.auth.GoogleAuthProvider();try{p.setCustomParameters({prompt:"select_account"})}catch(e){}
+  FB.auth.signInWithPopup(p).then(r=>{if(r&&r.user)toast("Ти увійшов як "+(r.user.displayName||"сталкер"))})
+    .catch(e=>{const c=e&&e.code;if(c==="auth/popup-closed-by-user"||c==="auth/cancelled-popup-request")return;toast(AUTH_MSG[c]||("Вхід не вдався: "+(c||e.message)))})
+    .finally(()=>{signing=false})}
 function renderAcct(){const b=$("acctBtn"),u=FB.user;
   b.innerHTML=u?`${FB.profile.photo||u.photoURL?`<img src="${esc(FB.profile.photo||u.photoURL)}" alt="" referrerpolicy="no-referrer">`:'<span class="av">'+esc((FB.profile.name||u.displayName||"С")[0])+"</span>"}${esc(FB.profile.name||u.displayName||"Сталкер")}`:"Увійти через Google"}
 function openAcct(first){if(!FB.user){signIn();return}const p=FB.profile;$("acctWrap").hidden=false;
