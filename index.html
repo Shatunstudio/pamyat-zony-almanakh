@@ -39,6 +39,27 @@
 .xnone{color:var(--muted);font-size:13px}
 .xrow .acts{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .xrow a.btn{text-decoration:none}
+
+/* limited series */
+@property --ang{syntax:"<angle>";inherits:false;initial-value:0deg}
+.lim-sec{color:var(--rad)}
+.lim-sec .limtag{font-family:var(--f-st);font-size:13px;letter-spacing:.08em;color:#000;background:linear-gradient(90deg,#f0be2e,#ffe9a3,#f0be2e);padding:3px 10px;border-radius:3px;transform:rotate(-2deg)}
+.lim-note{margin:-2px 0 12px;color:var(--muted);font-size:13px;max-width:70ch}
+.slot.lim .cardf{border:0;padding:3px;background:var(--panel)}
+.slot.lim .cardf img{inset:3px;width:calc(100% - 6px);height:calc(100% - 6px);border-radius:9px}
+.slot.lim.have .cardf,.slot.lim.transit .cardf{background:conic-gradient(from var(--ang),#f0be2e,#ffe9a3,#58cfc0,#9a7ad6,#c4413a,#f0be2e);animation:limspin 6s linear infinite;box-shadow:0 0 24px rgba(240,190,46,.35)}
+@keyframes limspin{to{--ang:360deg}}
+.limbadge{position:absolute;z-index:4;left:50%;bottom:9%;translate:-50% 0;font-family:var(--f-st);font-size:13px;letter-spacing:.1em;color:#000;white-space:nowrap;padding:3px 10px;border-radius:3px;
+  background:linear-gradient(100deg,#c99a1e,#fff3c4 45%,#f0be2e 55%,#c99a1e);background-size:220% 100%;animation:limshine 3.2s ease-in-out infinite;box-shadow:0 3px 10px rgba(0,0,0,.6)}
+@keyframes limshine{0%,100%{background-position:100% 0}50%{background-position:0 0}}
+.limser{position:absolute;z-index:4;top:7%;right:8%;font-family:var(--f-m);font-size:11px;font-weight:600;color:#000;background:var(--rad);padding:1px 6px;border-radius:3px}
+.slot.lim.none .limbadge{filter:grayscale(1);opacity:.7;animation:none}
+.slot.lim .nm .st{color:var(--rad)}
+.pocket.limp{border-color:color-mix(in srgb,var(--rad) 50%,#3a3f30)}
+.pocket.limp .pk-card{filter:drop-shadow(0 0 12px rgba(240,190,46,.45)) drop-shadow(0 8px 12px rgba(0,0,0,.55))}
+.pk-grid.three{grid-template-columns:1fr 1fr}
+.pg.limpage .pg-hd span{color:var(--rad)}
+@media (prefers-reduced-motion:reduce){.slot.lim .cardf,.limbadge{animation:none}}
 </style>
 </head>
 <body>
@@ -478,6 +499,7 @@ textarea.in{min-height:70px;resize:vertical}
     <div class="readout">
       <div class="ro rad"><div class="k">Зібрано</div><div class="v" id="rHave">0<small>/48</small></div></div>
       <div class="ro"><div class="k">Бракує</div><div class="v" id="rNeed">48</div></div>
+      <div class="ro rad"><div class="k">Лімітки</div><div class="v" id="rLim">0<small>/3</small></div></div>
       <div class="ro cy"><div class="k">Повторки на обмін</div><div class="v" id="rDup">0</div></div>
       <div class="ro"><div class="k">Витрачено, грн</div><div class="v" id="rSpent">0</div></div>
       <div class="ro"><label class="k" for="budget">Ліміт, грн</label><div><input id="budget" type="number" min="0" step="50" inputmode="numeric" placeholder="—"></div><div class="note" id="bNote"></div></div>
@@ -538,6 +560,7 @@ textarea.in{min-height:70px;resize:vertical}
       <label class="fl"><span>Ціна, грн</span><input class="in" id="fP" type="number" min="0" inputmode="decimal" placeholder="0"></label>
       <div class="fl"><span>Повторки</span><div class="step"><button id="dM" aria-label="Менше">−</button><output id="fD">0</output><button id="dP" aria-label="Більше">+</button></div></div>
     </div>
+    <label class="fl" id="serF" hidden><span>Твій номер з 1000</span><input class="in" id="fSer" inputmode="numeric" maxlength="4" placeholder="напр. 707"></label>
     <label class="fl"><span>Стан</span><select class="in" id="fC"><option value="">—</option><option>Ідеальний</option><option>Хороший</option><option>Потертий</option><option>Пошкоджений</option></select></label>
     <label class="fl"><span>Нотатки</span><textarea class="in" id="fN" maxlength="400" placeholder="Від кого, з ким обмін…"></textarea></label>
     <div class="acts">
@@ -605,8 +628,19 @@ function match(k){const x=it(k),c=CARDS[+k-1].c;if(cat!=="all"&&c!==cat)return f
 const RANKS=[{n:"Новачок",at:0},{n:"Досвідчений",at:8},{n:"Ветеран",at:20},{n:"Майстер",at:34},{n:"Легенда Зони",at:48}];
 const rankOf=h=>RANKS.reduce((a,x,i)=>h>=x.at?i:a,0);let lastRank=null;
 const REDUCE=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const LIM={L9:{n:9,name:"Скіф"},L15:{n:15,name:"Фауст"},L27:{n:27,name:"Моноліт"}},LIMK=Object.keys(LIM),LIMIMG={"L9": "l09.webp", "L15": "l15.webp", "L27": "l27.webp"};
+const isL=k=>typeof k==="string"&&k[0]==="L"&&!!LIM[k];
+const limSrc=k=>{const x=it(k);return x.img?(x.imgUrl||"/_blob/"+x.img):LIMIMG[k]};
+function limCard(k){const L=LIM[k],x=it(k);return `<div class="cardf photo lim"><img src="${esc(limSrc(k))}" alt="" loading="lazy"><span class="limbadge">ЛІМІТОВАНА</span>${x.ser?`<span class="limser">№ ${esc(x.ser)}/1000</span>`:""}${x.d?`<span class="dupb" style="top:auto;bottom:22%">+${x.d}</span>`:""}</div>
+  <div class="nm">${esc(L.name)}<span class="st">Лімітована · ${LBL[x.s]}${x.p?` · ${fmt(x.p)} грн`:""}</span></div>`}
+function limSection(){const ks=LIMK.filter(k=>{const x=it(k);return filter==="all"||(filter==="need"&&x.s!=="have")||(filter==="transit"&&x.s==="transit")||(filter==="have"&&x.s==="have")||(filter==="dup"&&x.d>0)});
+  if(!ks.length||!(cat==="all"))return "";const hv=LIMK.filter(k=>it(k).s==="have").length;
+  return `<div class="sec lim-sec">Лімітована серія <span class="cnt">${hv}/3</span><span class="limtag">НАКЛАД 1000</span></div>
+  <p class="lim-note">Три номерні картки додаткового тиражу. Кожна надрукована лише в 1 000 примірників і має свій номер. До основних 48 не зараховуються.</p>
+  <div class="grid">${ks.map(k=>`<button class="slot lim ${LIM[k].n===27?"c-fact":"c-chars"} ${it(k).s}" data-k="${k}" aria-label="${esc(LIM[k].name)}, лімітована: ${LBL[it(k).s]}">${limCard(k)}</button>`).join("")}</div>`}
 function render(){
   const r=stats();
+  {const e=$("rLim");if(e)e.innerHTML=`${LIMK.filter(k=>it(k).s==="have").length}<small>/3</small>`}
   anim.clear();
   $("det").innerHTML=IDS.map((k,i)=>{const x=it(k);return `<i class="${x.s} ${x.d?"dup":""}" style="--i:${i}" title="${pad(k)} ${esc(CARDS[+k-1].n)}"></i>`}).join("");
   const rk=rankOf(r.have),nx=RANKS[rk+1];
@@ -632,7 +666,7 @@ function render(){
       const c=CARDS[+k-1].c;if(c!==last){if(last)html+="</div>";const all=IDS.filter(q=>CARDS[q-1].c===c),hv=all.filter(q=>it(q).s==="have").length;
         html+=`<div class="sec ${CC[c]}">${CAT[c]} <span class="cnt">${hv}/${all.length}</span>${hv===all.length?'<span class="clr">Сектор зачищено</span>':""}</div><div class="grid">`;last=c}
       html+=`<button class="slot ${CC[c]} ${it(k).s}" data-k="${k}" aria-label="${pad(k)} ${esc(CARDS[+k-1].n)}: ${LBL[it(k).s]}">${cardHTML(k)}</button>`}
-    $("out").innerHTML=html+"</div>";
+    $("out").innerHTML=html+"</div>"+limSection();
   }else{
     $("out").innerHTML=`<div class="list">${ks.map(k=>{const x=it(k),c=CARDS[+k-1];return `<button class="lrow ${CC[c.c]}" data-k="${k}"><span class="n">${pad(k)}</span><span class="t">${esc(c.n)} <em>· ${CAT[c.c]}${x.d?` · +${x.d}`:""}</em></span><span class="tagst ${x.s}">${LBL[x.s]}</span></button>`}).join("")}</div>`}
   if(open)fill(false);
@@ -734,8 +768,8 @@ function startDosMotion(){if(dm)cancelAnimationFrame(dm.raf);if(REDUCE)return;
     dm.raf=requestAnimationFrame(step)};
   dm.raf=requestAnimationFrame(step)}
 function closeDossier(){cancelAnimationFrame(typer);if(dm){cancelAnimationFrame(dm.raf);dm=null}$("dos").hidden=true;const k=dosK;dosK=null;if(open)$("shMini").focus();else document.querySelector(`[data-k="${k}"]`)?.focus()}
-$("shMini").addEventListener("click",()=>{if(open&&open!=="alm")dossier(open)});
-$("shMini").addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&open&&open!=="alm"){e.preventDefault();dossier(open)}});
+$("shMini").addEventListener("click",()=>{if(open&&open!=="alm")dossier(isL(open)?LIM[open].n:open)});
+$("shMini").addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&open&&open!=="alm"){e.preventDefault();dossier(isL(open)?LIM[open].n:open)}});
 $("dos").addEventListener("click",e=>{if(e.target===$("dos"))closeDossier()});
 document.addEventListener("keydown",e=>{if($("dos").hidden)return;if(e.key==="Escape"){e.stopImmediatePropagation();closeDossier()}else if(e.key==="ArrowRight")$("dNext").click();else if(e.key==="ArrowLeft")$("dPrev").click()},true);
 let dsx=null;$("dos").addEventListener("touchstart",e=>{dsx=e.touches[0].clientX},{passive:true});
@@ -744,7 +778,9 @@ function closeSheet(){hideCrop();const k=open;open=null;$("sheetWrap").hidden=tr
 function fill(all){const k=open,x=it(k),sh=document.querySelector(".sheet");
   const mn=$("shMini");if(k==="alm"){mn.className="mini";mn.removeAttribute("tabindex");mn.removeAttribute("role");mn.removeAttribute("aria-label")}else{mn.className="mini can";mn.tabIndex=0;mn.setAttribute("role","button");mn.setAttribute("aria-label","Відкрити досьє картки")}
   if(k==="alm"){sh.className="sheet c-events";$("shMini").innerHTML=`<div class="cardf"><div class="hz"></div>${src(x)?`<img src="${esc(src(x))}" alt="">`:""}<div class="no" style="font-size:22px;top:26px">АЛЬМ.</div></div>`;$("shT").textContent="Альманах «Пам'ять Зони»";$("shSub").textContent="Альбом для карток"}
+  else if(isL(k)){const L=LIM[k];sh.className="sheet "+(L.n===27?"c-fact":"c-chars");$("shMini").innerHTML=`<div class="slot lim ${x.s}">${limCard(k)}</div>`;$("shT").textContent=L.name+" · Лімітована";$("shSub").textContent=`№ ${pad(L.n)} · наклад 1000 примірників`}
   else{const c=CARDS[+k-1];sh.className="sheet "+CC[c.c];$("shMini").innerHTML=`<div class="slot ${x.s}">${cardHTML(k)}</div>`;$("shT").textContent=c.n;$("shSub").textContent=`№ ${pad(k)} · ${CAT[c.c]}`}
+  $("serF").hidden=!isL(k);if(all&&isL(k))$("fSer").value=x.ser||"";
   document.querySelectorAll("#seg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.s===x.s));
   $("fD").textContent=x.d;$("phB").hidden=!assets||readOnly||mode==="local";$("phB").textContent=x.img?"Замінити фото":"Додати фото";$("phD").hidden=!x.img||readOnly;
   if(all){$("fP").value=x.p||"";$("fC").value=x.c;$("fN").value=x.note}}
@@ -754,6 +790,7 @@ $("dP").onclick=()=>{const x=it(open);change(open,{d:x.d+1,s:x.s==="none"?"have"
 $("fP").oninput=e=>change(open,{p:Math.max(0,+e.target.value||0)});
 $("fC").onchange=e=>change(open,{c:e.target.value});
 $("fN").oninput=e=>change(open,{note:e.target.value});
+$("fSer").oninput=e=>{const v=e.target.value.replace(/\D/g,"").slice(0,4);e.target.value=v;change(open,{ser:v&&+v>0&&+v<=1000?v:""})};
 $("shX").onclick=closeSheet;$("scrim").onclick=closeSheet;
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&open)closeSheet()});
 async function shrink(f){const u=URL.createObjectURL(f);try{const i=await new Promise((res,rej)=>{const m=new Image();m.onload=()=>res(m);m.onerror=rej;m.src=u});
@@ -1063,13 +1100,17 @@ document.addEventListener("keydown",e=>{if($("quizWrap").hidden||!$("dos").hidde
 /* ================= ALMANAC ================= */
 const ORDER=Object.keys(CAT);
 const PAGES=(()=>{const p=[{t:"intro"}];for(const c of ORDER){const ids=IDS.filter(k=>CARDS[k-1].c===c);const per=4,n=Math.ceil(ids.length/per);
-  for(let i=0;i<n;i++)p.push({t:"cat",c,ids:ids.slice(i*per,i*per+per),part:i+1,of:n})}p.push({t:"outro"});if(p.length%2)p.splice(p.length-1,0,{t:"notes"});return p})();
+  for(let i=0;i<n;i++)p.push({t:"cat",c,ids:ids.slice(i*per,i*per+per),part:i+1,of:n})}p.push({t:"lim"});p.push({t:"outro"});if(p.length%2)p.splice(p.length-1,0,{t:"notes"});return p})();
 let bp=0,turning=false;
 const narrow=()=>matchMedia("(max-width:760px)").matches;
 function pocket(k){const x=it(k),c=CARDS[k-1],s=src(x,k),rot=((k*37)%7-3)*.55;
   if(x.s==="none")return `<button class="pocket none ${CC[c.c]}" data-k="${k}" aria-label="${pad(k)} ${esc(c.n)}: місце порожнє"><span class="pk-no">${pad(k)}</span>${s?`<img class="ghost" src="${esc(s)}" alt="" loading="lazy">`:""}<span class="pk-nm">${esc(c.n)}</span><span class="pk-hint">місце для картки</span></button>`;
   return `<button class="pocket ${x.s} ${CC[c.c]}" data-k="${k}" style="--r:${rot}deg" aria-label="${pad(k)} ${esc(c.n)}: ${LBL[x.s]}"><span class="pk-card">${s?`<img src="${esc(s)}" alt="" loading="lazy">`:`<span class="pk-no">${pad(k)}</span>`}<i class="tape a"></i><i class="tape b"></i>${x.s==="transit"?'<span class="pk-st">В ДОРОЗІ</span>':""}${x.d?`<span class="pk-dup">+${x.d}</span>`:""}</span></button>`}
+function limPocket(k){const x=it(k),L=LIM[k];
+  if(x.s==="none")return `<button class="pocket none limp c-chars" data-k="${k}" aria-label="${esc(L.name)}, лімітована: місце порожнє"><span class="pk-no">${pad(L.n)}</span><img class="ghost" src="${esc(limSrc(k))}" alt="" loading="lazy"><span class="pk-nm">${esc(L.name)}</span><span class="pk-hint">лімітована · 1/1000</span></button>`;
+  return `<button class="pocket limp ${x.s}" data-k="${k}" style="--r:${(L.n%3-1)*1.2}deg" aria-label="${esc(L.name)}, лімітована"><span class="pk-card"><img src="${esc(limSrc(k))}" alt="" loading="lazy"><i class="tape a"></i><i class="tape b"></i>${x.s==="transit"?'<span class="pk-st">В ДОРОЗІ</span>':""}</span></button>`}
 function pageHTML(i){const p=PAGES[i];if(!p)return `<div class="pg blank"></div>`;const num=`<span class="pg-n">${i+1}</span>`;
+  if(p.t==="lim")return `<div class="pg cat limpage"><div class="pg-hd"><span>Лімітована серія</span><em>наклад 1000</em></div><div class="pk-grid three">${LIMK.map(limPocket).join("")}<span class="pocket filler" style="display:grid;place-items:center;text-align:center;padding:10px;color:var(--muted);font-size:12px;font-family:var(--f-m);border-color:transparent">Кожна з трьох має свій номер з 1000</span></div>${num}</div>`;
   if(p.t==="intro"){const h=IDS.filter(k=>it(k).s==="have").length,rk=rankOf(h);
     return `<div class="pg intro"><div class="pg-haz"></div><div class="pg-in"><span class="pg-eb">S.T.A.L.K.E.R. 2 · Інтерактивний альманах</span><h3>Пам'ять<br><span>Зони</span></h3>
       <p>Альбом сталкера на 48 карток: події, люди, фракції й таємниці Зони відчуження.</p>
@@ -1187,8 +1228,8 @@ function openAcct(first){if(!FB.user){signIn();return}const p=FB.profile;$("acct
     catch(e){toast("Не вдалося зберегти: "+(e.code||e.message))}}}
 
 /* exchange board */
-const haveSet=items=>new Set(Object.entries(items||{}).filter(([k,v])=>k!=="alm"&&v&&v.s==="have").map(([k])=>k));
-const dupSet=items=>new Set(Object.entries(items||{}).filter(([k,v])=>k!=="alm"&&v&&v.s==="have"&&(v.d||0)>0).map(([k])=>k));
+const haveSet=items=>new Set(Object.entries(items||{}).filter(([k,v])=>k!=="alm"&&k[0]!=="L"&&v&&v.s==="have").map(([k])=>k));
+const dupSet=items=>new Set(Object.entries(items||{}).filter(([k,v])=>k!=="alm"&&k[0]!=="L"&&v&&v.s==="have"&&(v.d||0)>0).map(([k])=>k));
 const sortN=a=>[...a].sort((x,y)=>x-y);
 async function loadBoard(force){if(!force&&Date.now()-FB.boardAt<60000)return FB.board;
   const q=await FB.fs.collection("collectors").where("public","==",true).limit(300).get();
