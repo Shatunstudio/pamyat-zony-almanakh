@@ -1,7 +1,7 @@
 /* Ключі проєкту Firebase «pamyat-zony-almanakh». Вони не секретні: дані захищають правила Firestore. */
 window.FIREBASE_CONFIG = {
   apiKey: "AIzaSyAfrKfQu6Nf1XXuaBd0fM_xZCvn5_dQZF4",
-  authDomain: "pamyat-zony-almanakh.firebaseapp.com",
+  authDomain: (location.hostname === "pamyat-zony-almanakh.vercel.app" ? location.hostname : "pamyat-zony-almanakh.firebaseapp.com"),
   projectId: "pamyat-zony-almanakh",
   storageBucket: "pamyat-zony-almanakh.firebasestorage.app",
   messagingSenderId: "248111174397",

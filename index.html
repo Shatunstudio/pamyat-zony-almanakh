@@ -1132,6 +1132,7 @@ function initCloud(){if(!fbReady()){$("acctBtn").hidden=true;$("xBtn").hidden=tr
   FB.on=true;window.FB_ON=true;FB.auth=firebase.auth();FB.fs=firebase.firestore();
   $("whose").hidden=true;
   try{FB.auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{})}catch(e){}
+  FB.auth.getRedirectResult().then(r=>{if(r&&r.user)toast("Ти увійшов як "+(r.user.displayName||"сталкер"))}).catch(e=>{const c=e&&e.code;if(c)toast(AUTH_MSG[c]||("Вхід не вдався: "+c))});
   FB.auth.onAuthStateChanged(async u=>{FB.user=u;renderAcct();
     if(FB.unsub){FB.unsub();FB.unsub=null}
     if(!u){if(mode==="cloud"){mode="local";ref=null;exists=false;S=loadLocal(LSK)||{items:{},budget:0};myS=S;viewing="mine";readOnly=false;setModeUI();render()}return}
@@ -1161,7 +1162,9 @@ const AUTH_MSG={"auth/popup-blocked":"Браузер заблокував вік
 let signing=false;
 function signIn(){if(!FB.on||signing)return;signing=true;const p=new firebase.auth.GoogleAuthProvider();try{p.setCustomParameters({prompt:"select_account"})}catch(e){}
   FB.auth.signInWithPopup(p).then(r=>{if(r&&r.user)toast("Ти увійшов як "+(r.user.displayName||"сталкер"))})
-    .catch(e=>{const c=e&&e.code;if(c==="auth/popup-closed-by-user"||c==="auth/cancelled-popup-request")return;toast(AUTH_MSG[c]||("Вхід не вдався: "+(c||e.message)))})
+    .catch(e=>{const c=e&&e.code;if(c==="auth/popup-closed-by-user"||c==="auth/cancelled-popup-request")return;
+      if(c==="auth/popup-blocked"||c==="auth/operation-not-supported-in-this-environment"){toast("Відкриваю вхід Google у цій вкладці…");FB.auth.signInWithRedirect(p);return}
+      toast(AUTH_MSG[c]||("Вхід не вдався: "+(c||e.message)))})
     .finally(()=>{signing=false})}
 function renderAcct(){const b=$("acctBtn"),u=FB.user;
   b.innerHTML=u?`${FB.profile.photo||u.photoURL?`<img src="${esc(FB.profile.photo||u.photoURL)}" alt="" referrerpolicy="no-referrer">`:'<span class="av">'+esc((FB.profile.name||u.displayName||"С")[0])+"</span>"}${esc(FB.profile.name||u.displayName||"Сталкер")}`:"Увійти через Google"}
